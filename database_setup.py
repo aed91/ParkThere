@@ -3,7 +3,7 @@ from datetime import datetime
 import pickle
 
 # Connect to or create the SQLite database
-conn = sqlite3.connect(r'C:\Users\YourUsername\Desktop\project_folder\parking_data.db')
+conn = sqlite3.connect(r'C:\Users\abelfrygcp\Desktop\ParkThere\parking_data.db')
 cursor = conn.cursor()
 
 # Create the ParkingSpots table if it doesn’t exist
