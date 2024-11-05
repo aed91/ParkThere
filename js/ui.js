@@ -1,7 +1,22 @@
-//This updated ui.js file not only initializes the navigation menus and forms but also dynamically displays the available 
-//and occupied parking spots based on the provided example data. You can easily replace the example data with real data when available.
+// Sample data for available and taken parking spots by row
+const exampleData = {
+  available: [
+    { row: "A", spots: 5 },
+    { row: "B", spots: 3 },
+    { row: "C", spots: 2 },
+    { row: "D", spots: 4 },
+    { row: "E", spots: 1 },
+  ],
+  taken: [
+    { row: "A", spots: 2 },
+    { row: "B", spots: 4 },
+    { row: "C", spots: 1 },
+    { row: "D", spots: 0 },
+    { row: "E", spots: 3 },
+  ]
+};
 
-const recipes = document.querySelector('.recipes');
+// Initialize DOM elements for displaying parking spots
 const availableSpotsList = document.getElementById('available-spots');
 const takenSpotsList = document.getElementById('taken-spots');
 
@@ -31,7 +46,7 @@ function displayParkingSpots(data) {
     availableSpotsList.appendChild(li);
   });
 
-  // Populate occupied spots
+  // Populate taken spots
   data.taken.forEach(entry => {
     const li = document.createElement('li');
     li.textContent = `Row ${entry.row}: ${entry.spots} spot(s) occupied`;
@@ -39,21 +54,5 @@ function displayParkingSpots(data) {
   });
 }
 
-// Example data structure to be passed to the display function
-const exampleData = {
-  available: [
-    { row: "A", spots: 5 },
-    { row: "B", spots: 3 },
-    { row: "C", spots: 2 },
-    { row: "D", spots: 4 },
-    { row: "E", spots: 1 },
-  ],
-  taken: [
-    { row: "A", spots: 2 },
-    { row: "B", spots: 4 },
-    { row: "C", spots: 1 },
-    { row: "D", spots: 0 },
-    { row: "E", spots: 3 },
-  ]
-};
-
+// Call the function to display data when the script loads
+displayParkingSpots(exampleData);
