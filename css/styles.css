@@ -1,0 +1,21 @@
+/*allows you to control the layout of your application
+*/
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f9f9f4;
+}
+
+.logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+
+
+
+#decdff#cdfffe#cdffe4#cdf8ff#f6ffcd#fdffcd#ebebeb#edeee7
