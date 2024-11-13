@@ -8,6 +8,15 @@ from ParkingSpace import PARKING_SPOT_HEIGHT,PARKING_SPOT_WIDTH
 # Start image_save.py as a background process
 image_save = subprocess.Popen(['python', 'image_save.py'])
 
+# Load video path from configuration file
+with open('config.txt', 'r') as config_file:
+    video_path = config_file.read().strip()
+
+# Check if the video path is not empty
+if not video_path:
+    print("Video path is not set.")
+    exit()
+
 #Load parkingspots
 with open('carparkspots', 'rb') as f:
     pList = pickle.load(f)
@@ -24,7 +33,7 @@ if static_img is None:
 display_img = cv2.resize(static_img, (800, 600))
 
 #Load video feed
-cap = cv2.VideoCapture('parking_lot_video full.avi')
+cap = cv2.VideoCapture(video_path)
 
 def parkspace(img_pro):
     img_updated = static_img.copy()

@@ -11,6 +11,7 @@ DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 600
 
 
+
 def load_parking_spots(filename):
     # Load parking spots from a file, return an empty list if the file doesn't exist or is empty.
     try:
@@ -45,9 +46,29 @@ def click(event, x, y, flags, pList):
 
 
 def main():
+    config_path = 'config.txt'
+    video_path = ''
+
+    # Check if the config file exists, if not create it
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as config_file:
+            video_path = config_file.read().strip()
+
+            # Ask user about video source
+            use_existing = input(f"Current input source is '{video_path}'. Use this? (y/n):").lower()
+            if use_existing != 'y':
+                video_path = input("Enter new input file: ")
+
+                # Update the config file
+                with open(config_path, 'w') as config_file:
+                    config_file.write(video_path)
+    else:
+        video_path = input("Enter input: ")
+        with open(config_path, 'w') as config_file:
+            config_file.write(video_path)
+
     filename = 'carparkspots'
     pList = load_parking_spots(filename)
-    video_path = 'parking_lot_video full.avi'
 
     # Capture first frame of video
     cap = cv2.VideoCapture(video_path)
