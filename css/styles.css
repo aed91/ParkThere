@@ -1,21 +1,61 @@
-/*allows you to control the layout of your application
-*/
-
-body {
+/* Parking Spot Display Section */
+#parking-spot-display {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f9f9f4;
+    flex-direction: column;  /* Stack the available and taken cards vertically */
+    align-items: center;     /* Center the cards horizontally */
+    width: 100%;
+    margin-top: 20px;
 }
 
+/* Card Layout */
+.card {
+    width: 100%; /* Full width on small screens */
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Card Content Styling */
+.card-content {
+    padding: 20px;
+}
+
+/* Card Title Styling */
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Available Spot Styling */
+.available {
+    background-color: #c8e6c9; /* Light green */
+    border: 2px solid #4caf50; /* Green border */
+}
+
+/* Taken Spot Styling */
+.taken {
+    background-color: #ffcdd2; /* Light red */
+    border: 2px solid #f44336; /* Red border */
+}
+
+/* Collection List (for Available and Taken Spots) */
+.collection {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* List Item Styling */
+.collection li {
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 1.1rem;
+    border-radius: 5px;
+}
+
+/* Logo Styling */
 .logo {
-    width: 150px;
+    width: 200px;  /* Adjusted size */
     height: auto;
     margin-bottom: 20px;
 }
-
-
-
-
-#decdff#cdfffe#cdffe4#cdf8ff#f6ffcd#fdffcd#ebebeb#edeee7
