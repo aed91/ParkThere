@@ -2,21 +2,28 @@ import cv2
 import pickle
 import os
 
+from screen_util import fit_to_screen
+
 # Define parking spot dimensions
-PARKING_SPOT_WIDTH = 125
-PARKING_SPOT_HEIGHT = 50
+PARKING_SPOT_WIDTH = 25
+PARKING_SPOT_HEIGHT = 10
 
-# Dimensions for the display
-DISPLAY_WIDTH = 800
-DISPLAY_HEIGHT = 600
+# Paths relative to the src folder
+BASE_DIR = os.path.dirname(__file__)  # src directory
+DATA_DIR = os.path.join(BASE_DIR, "..", "data")
+IMAGES_DIR = os.path.join(BASE_DIR, "..", "images")
+VIDEOS_DIR = os.path.join(BASE_DIR, "..", "videos")
 
-
+# Ensure necessary directories exist
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(IMAGES_DIR, exist_ok=True)
 
 def load_parking_spots(filename):
     # Load parking spots from a file, return an empty list if the file doesn't exist or is empty.
     try:
-        if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            with open(filename, 'rb') as f:
+        filepath = os.path.join(DATA_DIR, filename)
+        if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+            with open(filepath, 'rb') as f:
                 return pickle.load(f)
         else:
             print(f"File {filename} not found or empty. Starting with an empty list.")
@@ -28,44 +35,55 @@ def load_parking_spots(filename):
 
 def save_parking_spots(filename, spots):
     # Save parking spots to a file.
-    with open(filename, 'wb') as f:
+    filepath = os.path.join(DATA_DIR, filename)
+    with open(filepath, 'wb') as f:
         pickle.dump(spots, f)
     print(f"Saved {len(spots)} parking spots to {filename}.")
 
 
-def click(event, x, y, flags, pList):
+def click(event, x, y, flags, param):
+    pList, scale = param["pList"], param["scale"]
+
     # Handle mouse clicks to add or remove parking spots.
     if event == cv2.EVENT_LBUTTONDOWN:
-        pList.append((x, y))
+        # Map resized coordinates to original
+        original_x = int(x / scale)
+        original_y = int(y / scale)
+        pList.append((original_x, original_y))
     elif event == cv2.EVENT_RBUTTONDOWN:
+        # Map resized coordinates to original and check for removal
+        original_x = int(x / scale)
+        original_y = int(y / scale)
         for i, pos in enumerate(pList):
             x1, y1 = pos
-            if x1 < x < x1 + PARKING_SPOT_WIDTH and y1 < y < y1 + PARKING_SPOT_HEIGHT:
+            if x1 < original_x < x1 + PARKING_SPOT_WIDTH and y1 < original_y < y1 + PARKING_SPOT_HEIGHT:
                 pList.pop(i)
                 break
 
 
 def main():
-    config_path = 'config.txt'
-    video_path = ''
+    config_path = os.path.join(DATA_DIR, 'config.txt')
 
     # Check if the config file exists, if not create it
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file:
-            video_path = config_file.read().strip()
+            video_name = config_file.read().strip()
 
             # Ask user about video source
-            use_existing = input(f"Current input source is '{video_path}'. Use this? (y/n):").lower()
+            use_existing = input(f"Current input source is '{video_name}'. Use this? (y/n):").lower()
             if use_existing != 'y':
-                video_path = input("Enter new input file: ")
-
-                # Update the config file
+                video_name = input("Enter new input file name: ")
                 with open(config_path, 'w') as config_file:
-                    config_file.write(video_path)
+                    config_file.write(video_name)
+
     else:
-        video_path = input("Enter input: ")
+        video_name = input("Enter input: ")
         with open(config_path, 'w') as config_file:
-            config_file.write(video_path)
+            config_file.write(video_name)
+
+    # Debug: Print the resolved video path
+    video_path = os.path.join(VIDEOS_DIR, video_name)
+    print(f"Trying to load video from: {video_path}")
 
     filename = 'carparkspots'
     pList = load_parking_spots(filename)
@@ -80,11 +98,9 @@ def main():
         return
 
     # Save the captured frame as a static image for reference in other scripts
-    cv2.imwrite("parkinglot_image.png", frame)
-
-    # Display frame for spot selection
-    cv2.namedWindow('Parking Lot Editor')
-    cv2.setMouseCallback('Parking Lot Editor', click, pList)
+    parking_image_path = os.path.join(IMAGES_DIR, "parkinglot_image.png")
+    cv2.imwrite(parking_image_path, frame)
+    print(f"Saved first frame as {parking_image_path}")
 
     while True:
         img_copy = frame.copy()
@@ -93,7 +109,11 @@ def main():
         for pos in pList:
             cv2.rectangle(img_copy, pos, (pos[0] + PARKING_SPOT_WIDTH, pos[1] + PARKING_SPOT_HEIGHT), (255, 0, 255), 2)
 
-        cv2.imshow('Parking Lot Editor', img_copy)
+        # Dynamically resize image for display
+        img_resized, scale = fit_to_screen("Parking Lot Editor", img_copy)
+
+        cv2.setMouseCallback("Parking Lot Editor", click, param={"pList": pList, "scale": scale})
+        cv2.imshow('Parking Lot Editor', img_resized)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
