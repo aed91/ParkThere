@@ -1,10 +1,17 @@
 import time
 import cv2
+import os
 
-def save_image_timely():
+"""
+Periodically reads an image and saves it to a new 
+file in the specified directory.
+
+Used for updating the image sent to the webpage.
+"""
+
+def save_image_timely(interval=10):
     while True:
         img = cv2.imread("parkinglot_image.png")
-
         if img is not None:
             filename = "update.png"
             cv2.imwrite(filename, img)
@@ -13,7 +20,8 @@ def save_image_timely():
             print("Error: Unable to load image.")
 
         #Save again in seconds
-        time.sleep(10)
+        time.sleep(interval)
 
 # Start the save process
-save_image_timely()
+if __name__ == "__main__":
+    save_image_timely(interval=10)
