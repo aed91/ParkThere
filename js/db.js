@@ -1,92 +1,94 @@
-// Enable offline data persistence
-db.enablePersistence()
-  .catch(function(err) {
-    if (err.code === 'failed-precondition') {
-      // Likely due to multiple tabs open at once
-      console.log('Persistence failed');
-    } else if (err.code === 'unimplemented') {
-      // Lack of browser support for the feature
-      console.log('Persistence not available');
-    }
+// Function to fetch parking spot data from an API
+async function fetchParkingData() {
+  const API_URL = '/parking-data'; // API endpoint for fetching parking data
+  try {
+      const response = await fetch(API_URL); // Fetch data from backend API
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      const data = await response.json(); // Parse the response as JSON
+      updateParkingLot(data); // Update the parking lot UI with the fetched data
+  } catch (error) {
+      console.error('Error fetching parking data:', error);
+
+      // Handle offline state: Optionally show a fallback message or display cached data
+      const cachedData = await getCachedParkingData();
+      if (cachedData) {
+          updateParkingLot(cachedData); // Use cached data to update the UI
+          showErrorMessage("You are seeing cached data. The app couldn't fetch live data.");
+      } else {
+          showErrorMessage("Unable to fetch parking data. Please check your internet connection.");
+      }
+  }
+}
+
+// Function to update the UI with parking spot information
+function updateParkingLot(data) {
+  const parkingLotContainer = document.getElementById('parking-spot-display'); // Use existing container
+
+  // Check if parking-spot-display element exists before attempting to update
+  if (!parkingLotContainer) {
+      console.error("Parking spot display container element not found.");
+      return;
+  }
+
+  parkingLotContainer.innerHTML = ''; // Clear the existing parking spots
+
+  // Check for empty or invalid data
+  if (!Array.isArray(data) || data.length === 0) {
+      showErrorMessage("No parking data available.");
+      return;
+  }
+
+  // Use DocumentFragment for efficient DOM manipulation
+  const fragment = document.createDocumentFragment();
+
+  // Loop through each parking spot in the data
+  data.forEach(spot => {
+      // Validate the data for each parking spot
+      if (!spot.status || (spot.status !== 'available' && spot.status !== 'occupied')) {
+          return; // Skip invalid spot data
+      }
+
+      const spotDiv = document.createElement('div');
+      spotDiv.classList.add('parking-spot'); // Add base class for styling
+
+      // Apply different classes based on the status of the parking spot
+      if (spot.status === 'available') {
+          spotDiv.classList.add('available'); // Green border for available spots
+          spotDiv.textContent = 'Available';
+      } else if (spot.status === 'occupied') {
+          spotDiv.classList.add('occupied'); // Red border for occupied spots
+          spotDiv.textContent = 'Occupied';
+      }
+
+      fragment.appendChild(spotDiv); // Add the spot div to the fragment
   });
 
-// Real-time listener for parking spots
-db.collection('parkingSpots').onSnapshot(snapshot => {
-  snapshot.docChanges().forEach(change => {
-    if (change.type === 'added') {
-      renderParkingSpot(change.doc.data(), change.doc.id);
-    }
-    if (change.type === 'removed') {
-      removeParkingSpot(change.doc.id);
-    }
-    // Optional: You can also handle 'modified' changes here if needed
-    if (change.type === 'modified') {
-      updateParkingSpot(change.doc.data(), change.doc.id);
-    }
-  });
-});
-
-// Function to render a new parking spot
-function renderParkingSpot(data, id) {
-  const spot = document.createElement('div');
-  spot.classList.add(data.status === 'available' ? 'available' : 'occupied'); // Use 'occupied' for a taken spot
-  spot.textContent = `Row: ${data.row} - Spot ID: ${id} - Status: ${data.status}`;
-
-  // Assuming there's a container to display parking spots in your HTML
-  const parkingSpotContainer = document.querySelector('.parking-spots');
-  const spotElement = document.createElement('div');
-  spotElement.classList.add('parking-spot');
-  spotElement.setAttribute('data-id', id);
-  spotElement.appendChild(spot);
-  
-  parkingSpotContainer.appendChild(spotElement);
+  parkingLotContainer.appendChild(fragment); // Append the fragment to the container
 }
 
-// Function to update an existing parking spot (in case of modifications)
-function updateParkingSpot(data, id) {
-  const spotElement = document.querySelector(`[data-id="${id}"]`);
-  if (spotElement) {
-    const spot = spotElement.querySelector('div');
-    spot.classList.remove('available', 'occupied');
-    spot.classList.add(data.status === 'available' ? 'available' : 'occupied');
-    spot.textContent = `Row: ${data.row} - Spot ID: ${id} - Status: ${data.status}`;
+// Function to get cached parking data (if available)
+async function getCachedParkingData() {
+  const cache = await caches.open('site-dynamic-v2');
+  const cachedResponse = await cache.match('/parking-data');
+  if (cachedResponse) {
+      return cachedResponse.json(); // Return the cached data
+  }
+  return null;
+}
+
+// Function to show an error message in the UI
+function showErrorMessage(message) {
+  const parkingLotContainer = document.getElementById('parking-spot-display'); // Use existing container
+
+  // Check if the parking spot display container is available
+  if (parkingLotContainer) {
+      parkingLotContainer.innerHTML = `<p class="error-message">${message}</p>`;
+  } else {
+      console.error("Parking spot display container element not found to display error message.");
   }
 }
 
-// Function to remove a parking spot
-function removeParkingSpot(id) {
-  const spotElement = document.querySelector(`[data-id="${id}"]`);
-  if (spotElement) {
-    spotElement.remove();
-  }
-}
-
-// Form handling for adding parking spots
-const form = document.querySelector('form');
-form.addEventListener('submit', evt => {
-  evt.preventDefault();
-
-  // Collect data from the form
-  const parkingSpot = {
-    row: form.row.value, // e.g., "A"
-    status: form.status.value // either 'available' or 'taken'
-  };
-
-  // Add new parking spot to Firestore
-  db.collection('parkingSpots').add(parkingSpot)
-    .catch(err => console.log('Error adding parking spot:', err));
-
-  // Clear the form inputs
-  form.row.value = '';
-  form.status.value = '';
-});
-
-// Remove a parking spot (triggered by a click on an element with a delete button or icon)
-const parkingSpotContainer = document.querySelector('.parking-spots');
-parkingSpotContainer.addEventListener('click', evt => {
-  if (evt.target.tagName === 'I' && evt.target.getAttribute('data-id')) {
-    const id = evt.target.getAttribute('data-id');
-    db.collection('parkingSpots').doc(id).delete()
-      .catch(err => console.log('Error deleting parking spot:', err));
-  }
-});
+// Initialize and fetch parking data when the page is loaded
+document.addEventListener('DOMContentLoaded', fetchParkingData);

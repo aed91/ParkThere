@@ -1,16 +1,8 @@
-// Sample data for parking spots (used if API is unavailable)
-const exampleData = [
-  { spot_id: 1, status: 'available', row: "A", x: 0, y: 0 },
-  { spot_id: 2, status: 'taken', row: "A", x: 1, y: 0 },
-  { spot_id: 3, status: 'available', row: "B", x: 0, y: 1 },
-  { spot_id: 4, status: 'taken', row: "B", x: 1, y: 1 },
-  { spot_id: 5, status: 'available', row: "C", x: 0, y: 2 },
-  // More sample data...
-];
-
 // Initialize DOM elements for displaying parking spots
 const availableSpotsList = document.getElementById('available-spots');
 const takenSpotsList = document.getElementById('taken-spots');
+const totalSpotsElement = document.getElementById('total-spots');
+const lastUpdatedElement = document.getElementById('last-updated');
 
 // Wait for the DOM content to load before initializing UI elements
 document.addEventListener('DOMContentLoaded', function() {
@@ -29,43 +21,80 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to fetch parking spots data from the backend API
 async function fetchParkingSpots() {
   try {
-    const response = await fetch('/api/parking-spots');
+    const response = await fetch('/get-data'); // Corrected endpoint
     if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
-    displayParkingSpots(data); // Pass the fetched data to display function
+    const result = await response.json();
+
+    // Log the full response for debugging
+    console.log('API Response:', result);
+
+    // Extract the data from the API response
+    const parkingData = result.csv_data[0]; // Assuming there's only one object in csv_data
+
+    // Log the specific extracted data for debugging
+    console.log('Extracted Parking Data:', parkingData);
+
+    // Display the total spots and the last updated timestamp
+    displayTotalSpots(parkingData.total_spots, parkingData.last_updated);
+
+    // Display the number of available and occupied spots
+    displaySpotCounts(parkingData.free_spots, parkingData.occupied_spots);
   } catch (error) {
     console.error('Error fetching parking spots:', error);
     // Display example data if the API fetch fails
-    displayParkingSpots(exampleData);
+    displaySpotCounts(0, 0);
   }
 }
 
-// Function to display parking spots data
-function displayParkingSpots(data) {
+// Function to display total spots and last updated info
+function displayTotalSpots(total, lastUpdated) {
+  if (totalSpotsElement) {
+    totalSpotsElement.textContent = `Total Spots: ${total}`;
+  } else {
+    console.error('Total spots element not found');
+  }
+
+  if (lastUpdatedElement) {
+    lastUpdatedElement.textContent = `Last Updated: ${new Date(lastUpdated).toLocaleString()}`;
+  } else {
+    console.error('Last updated element not found');
+  }
+}
+
+// Function to display the counts of available and occupied spots
+function displaySpotCounts(freeSpots, occupiedSpots) {
   // Clear existing entries in the lists
-  availableSpotsList.innerHTML = '';
-  takenSpotsList.innerHTML = '';
+  if (availableSpotsList) {
+    availableSpotsList.innerHTML = '';
+  } else {
+    console.error('Available spots list not found');
+  }
 
-  // Sort spots by row and status
-  const availableSpots = data.filter(spot => spot.status === 'available');
-  const takenSpots = data.filter(spot => spot.status === 'taken');
+  if (takenSpotsList) {
+    takenSpotsList.innerHTML = '';
+  } else {
+    console.error('Taken spots list not found');
+  }
 
-  // Populate available spots list
-  availableSpots.forEach(entry => {
-    const li = document.createElement('li');
-    li.textContent = `Row ${entry.row}: Spot ${entry.spot_id} is available`;
-    li.classList.add('available'); // Add class for custom styling (green border)
-    availableSpotsList.appendChild(li);
-  });
+  // Display available spots count
+  const availableLi = document.createElement('li');
+  availableLi.textContent = `Available Spots: ${freeSpots}`;
+  availableLi.classList.add('available'); // Add class for custom styling (green border)
+  if (availableSpotsList) {
+    availableSpotsList.appendChild(availableLi);
+  }
 
-  // Populate taken spots list
-  takenSpots.forEach(entry => {
-    const li = document.createElement('li');
-    li.textContent = `Row ${entry.row}: Spot ${entry.spot_id} is occupied`;
-    li.classList.add('taken'); // Add class for custom styling (red border)
-    takenSpotsList.appendChild(li);
-  });
+  // Display occupied spots count
+  const takenLi = document.createElement('li');
+  takenLi.textContent = `Occupied Spots: ${occupiedSpots}`;
+  takenLi.classList.add('taken'); // Add class for custom styling (red border)
+  if (takenSpotsList) {
+    takenSpotsList.appendChild(takenLi);
+  }
 }
 
 // Initial call to display parking spots (in case the API is not available on first load)
-displayParkingSpots(exampleData);
+displaySpotCounts(0, 0);
+
+// Optional: Periodic data refresh every 5 seconds
+setInterval(fetchParkingSpots, 5000);
