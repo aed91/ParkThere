@@ -1,0 +1,12 @@
+ParkingSpace
+cvzone
+logging
+numpy
+opencv-python
+os
+pickle
+screen_util
+screeninfo
+subprocess
+sys
+time

@@ -2,76 +2,74 @@ import cv2
 import pickle
 import os
 
+from screen_util import fit_to_screen
+
 # Define parking spot dimensions
-PARKING_SPOT_WIDTH = 125
-PARKING_SPOT_HEIGHT = 50
+PARKING_SPOT_WIDTH = 25
+PARKING_SPOT_HEIGHT = 10
 
-# Dimensions for the display
-DISPLAY_WIDTH = 800
-DISPLAY_HEIGHT = 600
-
-
-
-def load_parking_spots(filename):
+def load_parking_spots():
     # Load parking spots from a file, return an empty list if the file doesn't exist or is empty.
     try:
-        if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            with open(filename, 'rb') as f:
-                return pickle.load(f)
-        else:
-            print(f"File {filename} not found or empty. Starting with an empty list.")
-            return []
+        with open('carparkspots', 'rb') as f:
+            return pickle.load(f)
     except Exception as e:
         print(f"Failed to load parking spots due to an error: {e}")
         return []
 
-
-def save_parking_spots(filename, spots):
+def save_parking_spots(spots):
     # Save parking spots to a file.
-    with open(filename, 'wb') as f:
-        pickle.dump(spots, f)
-    print(f"Saved {len(spots)} parking spots to {filename}.")
+    try:
+        with open('carparkspots', 'wb') as f:
+            pickle.dump(spots, f)
+        print(f"Saved {len(spots)} parking spots.")
+    except Exception as e:
+        print(f"Error: {e}")
 
+def click(event, x, y, flags, param):
+    pList, scale = param["pList"], param["scale"]
 
-def click(event, x, y, flags, pList):
     # Handle mouse clicks to add or remove parking spots.
     if event == cv2.EVENT_LBUTTONDOWN:
-        pList.append((x, y))
+        # Map resized coordinates to original
+        original_x = int(x / scale)
+        original_y = int(y / scale)
+        pList.append((original_x, original_y))
     elif event == cv2.EVENT_RBUTTONDOWN:
+        # Map resized coordinates to original and check for removal
+        original_x = int(x / scale)
+        original_y = int(y / scale)
         for i, pos in enumerate(pList):
             x1, y1 = pos
-            if x1 < x < x1 + PARKING_SPOT_WIDTH and y1 < y < y1 + PARKING_SPOT_HEIGHT:
+            if x1 < original_x < x1 + PARKING_SPOT_WIDTH and y1 < original_y < y1 + PARKING_SPOT_HEIGHT:
                 pList.pop(i)
                 break
 
-
 def main():
-    config_path = 'config.txt'
-    video_path = ''
+    # Check if config file exists to get the last used video file
+    last_used_video = None
+    if os.path.exists('config.txt'):
+        with open('config.txt', 'r') as config_file:
+            last_used_video = config_file.read().strip()
 
-    # Check if the config file exists, if not create it
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as config_file:
-            video_path = config_file.read().strip()
-
-            # Ask user about video source
-            use_existing = input(f"Current input source is '{video_path}'. Use this? (y/n):").lower()
-            if use_existing != 'y':
-                video_path = input("Enter new input file: ")
-
-                # Update the config file
-                with open(config_path, 'w') as config_file:
-                    config_file.write(video_path)
+    # Prompt the user to reuse the last video file or input a new one
+    if last_used_video:
+        use_last = input(f"Do you want to use the last video file '{last_used_video}'? (y/n): ").strip().lower()
+        if use_last == 'y':
+            video_name = last_used_video
+        else:
+            video_name = input("Enter input file name: ").strip()
     else:
-        video_path = input("Enter input: ")
-        with open(config_path, 'w') as config_file:
-            config_file.write(video_path)
+        video_name = input("Enter input file name: ").strip()
 
-    filename = 'carparkspots'
-    pList = load_parking_spots(filename)
+    # Save the chosen video file name to config.txt for future use
+    with open('config.txt', 'w') as config_file:
+        config_file.write(video_name)
 
-    # Capture first frame of video
-    cap = cv2.VideoCapture(video_path)
+    pList = load_parking_spots()
+
+    # Load the video and capture the first frame
+    cap = cv2.VideoCapture(video_name)
     success, frame = cap.read()
     cap.release()
 
@@ -79,29 +77,30 @@ def main():
         print("Error: Could not load frame")
         return
 
-    # Save the captured frame as a static image for reference in other scripts
+    # Save the first frame as a reference image
     cv2.imwrite("parkinglot_image.png", frame)
-
-    # Display frame for spot selection
-    cv2.namedWindow('Parking Lot Editor')
-    cv2.setMouseCallback('Parking Lot Editor', click, pList)
+    print("Saved first frame as parkinglot_image.png")
 
     while True:
         img_copy = frame.copy()
 
-        # Draw rectangles for all selected parking spots
+        # Draw rectangles over parking spots
         for pos in pList:
             cv2.rectangle(img_copy, pos, (pos[0] + PARKING_SPOT_WIDTH, pos[1] + PARKING_SPOT_HEIGHT), (255, 0, 255), 2)
 
-        cv2.imshow('Parking Lot Editor', img_copy)
+        img_resized, scale = fit_to_screen("Parking Lot Editor", img_copy)
+
+        # Set callback to add/remove parking spots
+        cv2.setMouseCallback("Parking Lot Editor", click, param={"pList": pList, "scale": scale})
+        cv2.imshow('Parking Lot Editor', img_resized)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # Save the selected parking spots
-    save_parking_spots(filename, pList)
+    # Save updated parking spots
+    save_parking_spots(pList)
     cv2.destroyAllWindows()
-
 
 if __name__ == '__main__':
     main()
+
