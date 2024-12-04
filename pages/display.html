@@ -3,22 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display Page</title>
+    <title>Display Page | ParkThere</title>
     <!-- Materialize CSS -->
-    <link rel="stylesheet" href="/css/materialize.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container center">
         <h1>Welcome to the Display Page</h1>
         <p>Maybe display parking lot</p>
 
-        <!-- Back to Home Button -->
-        <a href="../index.html" class="btn-large waves-effect waves-light">Back to Home</a>
+        <!-- Navigation Links -->
+        <div class="row" style="margin-top: 20px;">
+            <div class="col s12">
+                <a href="{{ url_for('index') }}" class="btn waves-effect waves-light">Back to Home</a>
+                <a href="{{ url_for('about') }}" class="btn waves-effect waves-light">About</a>
+                <a href="{{ url_for('contact') }}" class="btn waves-effect waves-light">Contact</a>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDKs (if needed) and Scripts -->
-    <script src="/js/materialize.min.js"></script>
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 </body>
 </html>

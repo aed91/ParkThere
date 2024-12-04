@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ParkThere</title>
     <!-- materialize icons, css & js -->
-    <link type="text/css" href="/css/materialize.min.css" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static', filename='css/materialize.min.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link type="text/css" href="/css/styles.css" rel="stylesheet">
-    <script type="text/javascript" src="/js/materialize.min.js"></script>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/img/icons/icon-96x96.png">
+    <link type="text/css" href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-96x96.png') }}">
     <meta name="apple-mobile-web-app-status-bar" content="#FFE1C4">
     <meta name="theme-color" content="#FFE1C4"> <!-- Fixed space -->
 </head>
@@ -27,9 +27,13 @@
             Collaboration and continuous improvement are at the heart of our development process, powered by GitHub for version control. Our team is dedicated to creating a seamless parking experience, helping you spend less time searching for a spot and more time enjoying your day.
             
             Join us in transforming the way you park!</p>
-        <a href="../index.html" class="btn">Back to Home</a>
+
+        <!-- Navigation Links -->
+        <a href="{{ url_for('index') }}" class="btn">Back to Home</a>
+        <a href="{{ url_for('contact') }}" class="btn">Contact</a>
+        <a href="{{ url_for('display') }}" class="btn">Display</a>
     </div>
-    <script src="/js/app.js"></script>
-    <script src="/js/ui.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 </body>
 </html>

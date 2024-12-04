@@ -1,33 +1,26 @@
-<!--  backup or alternative page that users are directed 
-  to when the main application cannot be accessed or when certain features (like offline capabilities) are not available. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fallback Page</title>
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container center">
+        <h1>Oops! Something went wrong.</h1>
+        <p>It looks like the page you're looking for is not available. Please try again later or return to the homepage.</p>
 
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-      <title>ParkThere</title> <!-- Updated title for consistency with your app -->
-      <!-- Materialize icons, CSS & JS -->
-      <link type="text/css" href="/css/materialize.min.css" rel="stylesheet">
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-      <link type="text/css" href="/css/styles.css" rel="stylesheet">
-      <script type="text/javascript" src="/js/materialize.min.js"></script>
-      <link rel="manifest" href="/manifest.json">
-      <link rel="apple-touch-icon" href="/img/icons/icon-96x96.png">
-      <meta name="apple-mobile-web-app-status-bar" content="#FFE1C4">
-      <meta name="theme-color" content="#FFE1C4">
-    </head>
-    <body class="grey lighten-4">
-    
-      <!-- Content -->
-      <div class="container grey-text center">
-        <h5>OOPS!</h5>
-        <p>Currently you can't view this page without a connection. Please try again later.</p>
-        <a href="/" class="btn-small orange z-depth-0">Go to the Homepage</a>
-      </div>
-    
-      <script src="/js/app.js"></script>
-      <script src="/js/ui.js"></script>
-    </body>
-  </html>
-  
+        <!-- Navigation Links -->
+        <a href="{{ url_for('index') }}" class="btn waves-effect waves-light">Back to Home</a>
+        <a href="{{ url_for('about') }}" class="btn waves-effect waves-light">About</a>
+        <a href="{{ url_for('contact') }}" class="btn waves-effect waves-light">Contact</a>
+    </div>
+
+    <!-- Firebase SDKs (if needed) and Scripts -->
+    <script src="/js/materialize.min.js"></script>
+</body>
+</html>
