@@ -1,7 +1,3 @@
 # ParkThere
 CSI 2999 Project
-Username:		Name:
-aed91			Amanda Diller
-abelfry			Alec Belfry
-JKrups			Jake Krupsky
-urazzaq03		Urouge Razzaq
+Amanda Diller username is aed91, Alec Belfry username is abelfry, Jake Krupsky username is JKrups, Urouge Razzaq username is urazzaq03		
